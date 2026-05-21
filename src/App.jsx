@@ -129,7 +129,7 @@ export default function App() {
     <div className="bg-[#05070b] text-white min-h-screen overflow-x-hidden relative font-sans selection:bg-[#7BAE7F]/20">
 
       {/* AUDIO */}
-      <audio ref={audioRef} src="/ultah-sayang/about-you.mp3" loop preload="metadata" />
+      <audio ref={audioRef} src="/sayangnyaa-masss-ultah/about-you.mp3" loop preload="metadata" />
 
       {/* Background Stars */}
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
@@ -262,7 +262,7 @@ export default function App() {
             </motion.div>
 
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5, duration: 1 }} className="w-full shadow-2xl rounded-2xl overflow-hidden border border-white/5 bg-slate-900/40">
-              <img src="/ultah-sayang/photo1.jpeg" alt="Opening Moments" className="w-full h-auto object-cover" loading="lazy" />
+              <img src="/sayangnyaa-masss-ultah/photo1.jpeg" alt="Opening Moments" className="w-full h-auto object-cover" loading="lazy" />
             </motion.div>
 
             <span className="text-[10px] uppercase tracking-widest text-slate-500 animate-bounce pt-4 block">scroll slowly ↓</span>
@@ -275,7 +275,7 @@ export default function App() {
               <p className="text-[9px] uppercase tracking-[0.3em] text-[#7BAE7F]">bekasi ↔ sanggau (1.550 km)</p>
             </div>
             <div className="w-full shadow-2xl rounded-2xl overflow-hidden border border-white/5 bg-slate-900/40">
-              <img src="/ultah-sayang/Map.png" alt="LDR Map" className="w-full h-auto object-cover" loading="lazy" />
+              <img src="/sayangnyaa-masss-ultah/Map.png" alt="LDR Map" className="w-full h-auto object-cover" loading="lazy" />
             </div>
           </section>
 
@@ -286,7 +286,7 @@ export default function App() {
               <p className="text-[9px] uppercase tracking-[0.3em] text-slate-500">pieces of you</p>
             </div>
             <div className="w-full shadow-2xl rounded-2xl overflow-hidden border border-white/5 bg-slate-900/40">
-              <img src="/ultah-sayang/photo.png" alt="Photobooth" className="w-full h-auto object-cover" loading="lazy" />
+              <img src="/sayangnyaa-masss-ultah/photo.png" alt="Photobooth" className="w-full h-auto object-cover" loading="lazy" />
             </div>
           </section>
 
@@ -297,7 +297,7 @@ export default function App() {
               <p className="text-[9px] uppercase tracking-[0.3em] text-slate-500">screenshots i secretly keep</p>
             </div>
             <div className="w-full shadow-2xl rounded-2xl overflow-hidden border border-white/5 bg-slate-900/40">
-              <img src="/ultah-sayang/chat-dumb.png" alt="Chat Dump" className="w-full h-auto object-cover" loading="lazy" />
+              <img src="/sayangnyaa-masss-ultah/chat-dumb.png" alt="Chat Dump" className="w-full h-auto object-cover" loading="lazy" />
             </div>
           </section>
 
@@ -314,7 +314,7 @@ export default function App() {
                 transition={{ repeat: Infinity, duration: 10, ease: 'linear' }}
                 className="w-48 h-48 rounded-full shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden border-4 border-slate-800"
               >
-                <img src="/ultah-sayang/vinyl.png" alt="Vinyl" className="w-full h-full object-cover" loading="lazy" />
+                <img src="/sayangnyaa-masss-ultah/vinyl.png" alt="Vinyl" className="w-full h-full object-cover" loading="lazy" />
               </motion.div>
 
               {isPlaying && (
@@ -346,7 +346,7 @@ export default function App() {
               <p className="text-[9px] uppercase tracking-[0.3em] text-slate-500">from your favorite boy</p>
             </div>
             <div className="w-full shadow-2xl rounded-2xl overflow-hidden border border-white/5 bg-slate-900/40">
-              <img src="/ultah-sayang/pesan.png" alt="Love Message" className="w-full h-auto object-cover" loading="lazy" />
+              <img src="/sayangnyaa-masss-ultah/pesan.png" alt="Love Message" className="w-full h-auto object-cover" loading="lazy" />
             </div>
           </section>
 
