@@ -4,5 +4,5 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  base: '/sayangnyaa-masss-ultah/', // <-- UDAH SAMA PERMANEN SAMA REPO GITHUB LO
+  base: '/sayangnyaa-masss-ultah/', // <-- WAJIB ADA INI
 })
