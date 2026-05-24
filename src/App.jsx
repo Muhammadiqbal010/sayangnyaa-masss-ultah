@@ -243,7 +243,7 @@ export default function App() {
                 transition={{ repeat: Infinity, duration: 10, ease: 'linear' }}
                 className="w-48 h-48 rounded-full shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden border-4 border-slate-800"
               >
-                <img src="/sayangnyaa-masss-ultah/vinyl.png" alt="Vinyl" className="w-full h-full object-cover" loading="lazy" />
+                <img src="/sayangnyaa-masss-ultah/ABOUT_YOU.png" alt="Vinyl" className="w-full h-full object-cover" loading="lazy" />
               </motion.div>
 
               {isPlaying && (
