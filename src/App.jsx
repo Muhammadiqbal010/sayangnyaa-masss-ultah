@@ -496,7 +496,7 @@ export default function App() {
                   type="text"
                   maxLength={4}
                   value={formGate.date}
-                  placeholder="tanggal lahir (2205)"
+                  placeholder="tanggal lahir (3108)"
                   onChange={(e) =>
                     handleGateInput(
                       'date',
