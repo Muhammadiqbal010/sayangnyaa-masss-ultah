@@ -1,48 +1,67 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function App() {
   // =========================================================
-  // STATE
+  // HELPERS
   // =========================================================
-  
-  // PERBAIKAN TOTAL: Hitung hari langsung lewat Lazy Initial State agar aman dari Cascading Render
-  const [daysTogether] = useState(() => {
+  const calculateDaysTogether = () => {
     const startDate = new Date('2025-10-03T00:00:00');
     const today = new Date();
+
     const diffTime = today.getTime() - startDate.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
     return diffDays >= 0 ? diffDays : 0;
-  });
+  };
+
+  // =========================================================
+  // STATE
+  // =========================================================
+  const [daysTogether] = useState(calculateDaysTogether);
 
   const [isUnlocked, setIsUnlocked] = useState(false);
-  const [inputName, setInputName] = useState('');
-  const [inputDate, setInputDate] = useState('');
-  const [inputMatcha, setInputMatcha] = useState('');
+
+  const [formGate, setFormGate] = useState({
+    name: '',
+    date: '',
+    drink: '',
+  });
+
   const [gateError, setGateError] = useState('');
 
   const [loading, setLoading] = useState(true);
-  const [loadingText, setLoadingText] = useState('initializing memories...');
+  const [loadingText, setLoadingText] = useState(
+    'initializing memories...'
+  );
+
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Form State
-  const [futureSelf, setFutureSelf] = useState('');
-  const [firstMeet, setFirstMeet] = useState('');
-  const [futureRelationship, setFutureRelationship] = useState('');
+  const [answers, setAnswers] = useState({
+    futureSelf: '',
+    firstMeet: '',
+    futureRelationship: '',
+  });
 
-  // Lazy Initial State untuk Bintang (Aman dari React Compiler v19)
-  const [stars] = useState(() => {
+  // =========================================================
+  // MEMOIZED STARS
+  // =========================================================
+  const stars = useMemo(() => {
     if (typeof window === 'undefined') return [];
-    return Array.from({ length: 60 }).map(() => ({
+
+    return Array.from({ length: 70 }).map(() => ({
       width: Math.random() * 2 + 1,
       height: Math.random() * 2 + 1,
       top: Math.random() * 100,
       left: Math.random() * 100,
       opacity: Math.random() * 0.4,
-      duration: Math.random() * 3 + 2,
+      duration: Math.random() * 4 + 2,
     }));
-  });
+  }, []);
 
+  // =========================================================
+  // REFS
+  // =========================================================
   const audioRef = useRef(null);
   const timersRef = useRef([]);
 
@@ -50,47 +69,92 @@ export default function App() {
   // EFFECTS
   // =========================================================
   useEffect(() => {
-    if (isUnlocked) {
-      const sequence = [
-        { time: 1000, text: 'loading favorite person...' },
-        { time: 2200, text: 'connecting two hearts across 1.550 km...' },
-        { time: 3400, text: '100%' },
-        { time: 4200, text: 'for someone special, born on may 22 💚' },
-      ];
+    if (!isUnlocked) return;
 
+    const sequence = [
+      {
+        time: 1000,
+        text: 'loading favorite person...',
+      },
+      {
+        time: 2200,
+        text: 'connecting two hearts across 1.550 km...',
+      },
+      {
+        time: 3400,
+        text: '100%',
+      },
+      {
+        time: 4300,
+        text: 'for someone special, born on may 22 💚',
+      },
+    ];
+
+    timersRef.current.forEach(clearTimeout);
+
+    timersRef.current = [];
+
+    sequence.forEach((item) => {
+      const timer = setTimeout(() => {
+        setLoadingText(item.text);
+      }, item.time);
+
+      timersRef.current.push(timer);
+    });
+
+    const finalTimer = setTimeout(() => {
+      setLoading(false);
+    }, 5600);
+
+    timersRef.current.push(finalTimer);
+
+    return () => {
       timersRef.current.forEach(clearTimeout);
-      timersRef.current = [];
-
-      sequence.forEach((item) => {
-        const timer = setTimeout(() => setLoadingText(item.text), item.time);
-        timersRef.current.push(timer);
-      });
-
-      const finalTimer = setTimeout(() => setLoading(false), 5500);
-      timersRef.current.push(finalTimer);
-    }
-
-    return () => timersRef.current.forEach(clearTimeout);
+    };
   }, [isUnlocked]);
 
-  // Audio Cleanup
   useEffect(() => {
-    const currentAudio = audioRef.current;
+    const audio = audioRef.current;
+
     return () => {
-      if (currentAudio) currentAudio.pause();
+      if (audio) {
+        audio.pause();
+      }
     };
   }, []);
 
   // =========================================================
   // FUNCTIONS
   // =========================================================
+  const handleGateInput = useCallback((field, value) => {
+    setFormGate((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  }, []);
+
+  const handleAnswerInput = useCallback((field, value) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  }, []);
+
   const handleUnlockGate = () => {
+    const isDateValid = formGate.date === '2205';
+
+    const isDrinkValid =
+      formGate.drink.trim().toLowerCase() === 'matcha';
+
     if (
-      inputName.trim() === '' ||
-      inputDate !== '2205' ||
-      inputMatcha.trim().toLowerCase() !== 'matcha'
+      formGate.name.trim() === '' ||
+      !isDateValid ||
+      !isDrinkValid
     ) {
-      setGateError('aww, akses ditolak! coba cek nama, tanggal lahir, atau minuman favorit kamu lagi ya, sayangg 🤨');
+      setGateError(
+        'aww, akses ditolak! coba cek nama, tanggal lahir, atau minuman favorit kamu lagi ya, sayangg 🤨'
+      );
+
       return;
     }
 
@@ -100,102 +164,217 @@ export default function App() {
 
   const toggleMusic = async () => {
     const audio = audioRef.current;
+
     if (!audio) return;
+
     try {
       if (isPlaying) {
         audio.pause();
       } else {
         await audio.play();
       }
-      setIsPlaying(!isPlaying);
+
+      setIsPlaying((prev) => !prev);
     } catch (err) {
-      console.log("Audio play blocked:", err);
+      console.log('audio blocked:', err);
     }
   };
 
   const handleSendLiveWish = () => {
-    const message = `💚 JAWABAN DARI SAYANGG 💚\n\n` +
+    const message =
+      `💚 JAWABAN DARI SAYANGG 💚\n\n` +
       `1. Di umur baru ini, kamu pengen jadi versi diri yang kayak gimana?\n` +
-      `👉 ${futureSelf || '-'}\n\n` +
+      `👉 ${answers.futureSelf || '-'}\n\n` +
       `2. Kalau nanti kita akhirnya ketemu, hal pertama yang pengen kita lakuin apa?\n` +
-      `👉 ${firstMeet || '-'}\n\n` +
+      `👉 ${answers.firstMeet || '-'}\n\n` +
       `3. Menurut kamu, hubungan kita bakal kayak apa beberapa tahun lagi?\n` +
-      `👉 ${futureRelationship || '-'}`;
+      `👉 ${answers.futureRelationship || '-'}`;
 
-    window.open(`https://wa.me/6285773615870?text=${encodeURIComponent(message)}`, '_blank');
+    window.open(
+      `https://wa.me/6285773615870?text=${encodeURIComponent(
+        message
+      )}`,
+      '_blank'
+    );
   };
 
+  // =========================================================
+  // COMPONENTS
+  // =========================================================
+  const SectionTitle = ({ title, subtitle }) => (
+    <div className="text-center space-y-1">
+      <h2 className="text-xl italic font-serif text-slate-200">
+        {title}
+      </h2>
+
+      <p className="text-[9px] uppercase tracking-[0.3em] text-slate-500">
+        {subtitle}
+      </p>
+    </div>
+  );
+
+  const ImageCard = ({ src, alt }) => (
+    <div className="w-full overflow-hidden rounded-2xl border border-white/5 bg-slate-900/40 shadow-2xl">
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        className="h-auto w-full object-cover transition duration-700 hover:scale-[1.02]"
+      />
+    </div>
+  );
+
+  const TextareaField = ({
+    label,
+    placeholder,
+    value,
+    onChange,
+  }) => (
+    <div className="space-y-2">
+      <label className="block text-xs font-medium leading-relaxed text-slate-300">
+        {label}
+      </label>
+
+      <textarea
+        rows={3}
+        value={value}
+        placeholder={placeholder}
+        onChange={onChange}
+        className="w-full resize-none rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-xs text-slate-200 outline-none transition placeholder:text-slate-600 focus:border-[#7BAE7F]"
+      />
+    </div>
+  );
+
   return (
-    <div className="bg-[#05070b] text-white min-h-screen overflow-x-hidden relative font-sans selection:bg-[#7BAE7F]/20">
+    <div className="relative min-h-screen overflow-x-hidden bg-[#05070b] font-sans text-white selection:bg-[#7BAE7F]/20">
 
       {/* AUDIO */}
-      <audio ref={audioRef} src="/sayangnyaa-masss-ultah/about-you.mp3" loop preload="metadata" />
+      <audio
+        ref={audioRef}
+        src="/sayangnyaa-masss-ultah/about-you.mp3"
+        loop
+        preload="metadata"
+      />
 
-      {/* Background Stars */}
-      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        {stars.map((s, i) => (
+      {/* BACKGROUND */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+
+        {/* gradient */}
+        <div className="absolute left-1/2 top-0 h-[400px] w-[400px] -translate-x-1/2 rounded-full bg-[#7BAE7F]/10 blur-[120px]" />
+
+        {/* stars */}
+        {stars.map((star, index) => (
           <span
-            key={i}
-            className="absolute bg-white rounded-full animate-pulse"
+            key={index}
+            className="absolute rounded-full bg-white animate-pulse"
             style={{
-              width: `${s.width}px`,
-              height: `${s.height}px`,
-              top: `${s.top}%`,
-              left: `${s.left}%`,
-              opacity: s.opacity,
-              animationDuration: `${s.duration}s`,
+              width: `${star.width}px`,
+              height: `${star.height}px`,
+              top: `${star.top}%`,
+              left: `${star.left}%`,
+              opacity: star.opacity,
+              animationDuration: `${star.duration}s`,
             }}
           />
         ))}
       </div>
 
-      {/* GATE SECTION */}
+      {/* GATE */}
       <AnimatePresence>
         {!isUnlocked && (
           <motion.div
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.8 }}
-            className="fixed inset-0 bg-[#05070b] z-50 flex items-center justify-center p-4"
+            exit={{
+              opacity: 0,
+              scale: 0.98,
+            }}
+            transition={{
+              duration: 0.8,
+            }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[#05070b] p-4"
           >
-            <div className="bg-[#0c1118] border border-[#7BAE7F]/20 rounded-3xl p-8 w-full max-w-sm space-y-4 shadow-2xl text-center">
-              <span className="text-4xl block animate-bounce">🔒</span>
-              <h1 className="text-[#7BAE7F] font-bold text-xl tracking-wider uppercase">strictly personal</h1>
-              <p className="text-xs text-slate-400">web ini dikunci khusus buat kamu, sayangg</p>
+            <div className="w-full max-w-sm space-y-5 rounded-3xl border border-[#7BAE7F]/20 bg-[#0c1118] p-8 text-center shadow-2xl">
+
+              <motion.span
+                animate={{
+                  y: [0, -6, 0],
+                }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 2,
+                }}
+                className="block text-4xl"
+              >
+                🔒
+              </motion.span>
+
+              <div className="space-y-2">
+                <h1 className="text-xl font-bold uppercase tracking-wider text-[#7BAE7F]">
+                  strictly personal
+                </h1>
+
+                <p className="text-xs text-slate-400">
+                  web ini dikunci khusus buat kamu, sayangg
+                </p>
+              </div>
 
               <div className="space-y-3 pt-2">
+
                 <input
                   type="text"
+                  value={formGate.name}
                   placeholder="nama panggilan kamu..."
-                  className="w-full bg-slate-900/80 border border-slate-800 rounded-xl p-3 text-xs outline-none focus:border-[#7BAE7F] transition text-slate-200"
-                  value={inputName}
-                  onChange={(e) => setInputName(e.target.value)}
+                  onChange={(e) =>
+                    handleGateInput('name', e.target.value)
+                  }
+                  className="w-full rounded-xl border border-slate-800 bg-slate-900/80 p-3 text-xs text-slate-200 outline-none transition focus:border-[#7BAE7F]"
                 />
+
                 <input
                   type="text"
                   maxLength={4}
-                  placeholder="tanggal lahir (contoh: DD/MM (3108))"
-                  className="w-full bg-slate-900/80 border border-slate-800 rounded-xl p-3 text-xs text-center font-mono tracking-widest outline-none focus:border-[#7BAE7F] transition text-slate-200"
-                  value={inputDate}
-                  onChange={(e) => setInputDate(e.target.value)}
+                  value={formGate.date}
+                  placeholder="tanggal lahir (2205)"
+                  onChange={(e) =>
+                    handleGateInput('date', e.target.value)
+                  }
+                  className="w-full rounded-xl border border-slate-800 bg-slate-900/80 p-3 text-center font-mono text-xs tracking-widest text-slate-200 outline-none transition focus:border-[#7BAE7F]"
                 />
+
                 <input
                   type="text"
+                  value={formGate.drink}
                   placeholder="minuman favorit kamu? 😜"
-                  className="w-full bg-slate-900/80 border border-slate-800 rounded-xl p-3 text-xs outline-none focus:border-[#7BAE7F] transition text-slate-200"
-                  value={inputMatcha}
-                  onChange={(e) => setInputMatcha(e.target.value)}
+                  onChange={(e) =>
+                    handleGateInput('drink', e.target.value)
+                  }
+                  className="w-full rounded-xl border border-slate-800 bg-slate-900/80 p-3 text-xs text-slate-200 outline-none transition focus:border-[#7BAE7F]"
                 />
               </div>
 
-              {gateError && (
-                <p className="text-rose-400 text-[11px] font-mono leading-relaxed px-1">
-                  {gateError}
-                </p>
-              )}
+              <AnimatePresence mode="wait">
+                {gateError && (
+                  <motion.p
+                    initial={{
+                      opacity: 0,
+                      y: 5,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                    }}
+                    exit={{
+                      opacity: 0,
+                    }}
+                    className="px-1 text-[11px] leading-relaxed text-rose-400"
+                  >
+                    {gateError}
+                  </motion.p>
+                )}
+              </AnimatePresence>
 
               <button
                 onClick={handleUnlockGate}
-                className="w-full bg-[#7BAE7F] text-slate-950 py-3 rounded-xl text-xs uppercase tracking-widest font-bold hover:bg-green-400 transition-all active:scale-95 shadow-lg shadow-[#7BAE7F]/10"
+                className="w-full rounded-xl bg-[#7BAE7F] py-3 text-xs font-bold uppercase tracking-widest text-slate-950 shadow-lg shadow-[#7BAE7F]/10 transition-all hover:bg-green-400 active:scale-95"
               >
                 buka kado ✨
               </button>
@@ -204,21 +383,36 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* LOADING SECTION */}
+      {/* LOADING */}
       <AnimatePresence>
         {isUnlocked && loading && (
           <motion.div
-            exit={{ opacity: 0, filter: 'blur(10px)' }}
-            transition={{ duration: 1 }}
-            className="fixed inset-0 z-40 bg-[#05070b] flex items-center justify-center p-4"
+            exit={{
+              opacity: 0,
+              filter: 'blur(10px)',
+            }}
+            transition={{
+              duration: 1,
+            }}
+            className="fixed inset-0 z-40 flex items-center justify-center bg-[#05070b] p-4"
           >
-            <div className="absolute w-[250px] h-[250px] bg-[#7BAE7F] rounded-full filter blur-[100px] opacity-10 animate-pulse pointer-events-none" />
+            <div className="absolute h-[250px] w-[250px] animate-pulse rounded-full bg-[#7BAE7F] opacity-10 blur-[100px]" />
+
             <motion.p
               key={loadingText}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="text-xs uppercase tracking-[0.3em] text-slate-300 font-mono text-center leading-relaxed"
+              initial={{
+                opacity: 0,
+                y: 10,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+              }}
+              exit={{
+                opacity: 0,
+                y: -10,
+              }}
+              className="text-center font-mono text-xs uppercase leading-relaxed tracking-[0.3em] text-slate-300"
             >
               {loadingText}
             </motion.p>
@@ -226,199 +420,276 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* MAIN CONTENT */}
+      {/* MAIN */}
       {isUnlocked && !loading && (
-        <div className="relative z-10 max-w-xl mx-auto px-4 pb-24 space-y-24">
+        <div className="relative z-10 mx-auto max-w-xl space-y-24 px-4 pb-24">
 
-          {/* Vinyl Music */}
-          <section className="flex flex-col justify-center items-center text-center p-6 py-16 bg-slate-900/20 border border-white/5 rounded-3xl space-y-8">
-            <div className="space-y-2">
-              <h2 className="text-sm font-serif italic text-slate-300">every time this song plays,</h2>
-              <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500">masss always think about you</p>
-            </div>
+          {/* HERO */}
+          <section className="flex min-h-screen flex-col items-center justify-center space-y-8 text-center">
 
-            <div className="relative flex justify-center items-center py-4">
-              <motion.div
-                animate={{ rotate: isPlaying ? 360 : 0 }}
-                transition={{ repeat: Infinity, duration: 10, ease: 'linear' }}
-                className="w-48 h-48 rounded-full shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden border-4 border-slate-800"
-              >
-                <img src="/sayangnyaa-masss-ultah/vinyl.png" alt="Vinyl" className="w-full h-full object-cover" loading="lazy" />
-              </motion.div>
-
-              {isPlaying && (
-                <motion.div
-                  animate={{ scale: [1, 1.18, 1], opacity: [0.4, 0, 0.4] }}
-                  transition={{ repeat: Infinity, duration: 1.8 }}
-                  className="absolute inset-0 rounded-full border border-[#7BAE7F]/30 pointer-events-none"
-                />
-              )}
-            </div>
-
-            <div className="space-y-1">
-              <h3 className="uppercase tracking-[0.3em] text-xs font-bold text-slate-200">about you</h3>
-              <p className="text-[9px] uppercase tracking-[0.25em] text-[#7BAE7F]">the 1975</p>
-            </div>
-
-            <button
-              onClick={toggleMusic}
-              className="bg-white text-slate-950 px-8 py-3 rounded-full text-[10px] uppercase tracking-[0.2em] font-bold hover:bg-[#7BAE7F] hover:text-white transition-all shadow-md active:scale-95"
+            <motion.div
+              initial={{
+                opacity: 0,
+                y: 20,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+              }}
+              transition={{
+                duration: 1.2,
+              }}
+              className="space-y-6"
             >
-              {isPlaying ? 'pause music ⏸' : 'play music ▶'}
-            </button>
-          </section>
-          
-          {/* Counter Together */}
-          <section className="flex justify-center items-center py-6 pt-12">
-            <div className="bg-slate-900/30 border border-white/5 rounded-3xl px-8 py-6 text-center backdrop-blur-md shadow-xl w-full">
-              <p className="text-[10px] uppercase tracking-[0.35em] text-[#7BAE7F] font-mono">
-                together since
-              </p>
-              <h1 className="text-5xl font-black text-white pt-3">
-                {daysTogether}
-              </h1>
-              <p className="text-xs text-slate-400 uppercase tracking-[0.25em] pt-2">
-                days with you 💚
-              </p>
-              <div className="w-full h-px bg-white/5 my-5" />
-              <p className="text-[11px] text-slate-500 leading-relaxed max-w-[220px] mx-auto">
-                sejak 3 october 2025, dan masss masih tetep bersyukur karena random chat itu ternyata bawa masss ke sayanggg.
-              </p>
-            </div>
-          </section>
+              <h3 className="font-mono text-xs uppercase tracking-[0.4em] text-[#7BAE7F]/70">
+                3 october 2025
+              </h3>
 
-          {/* Opening Section */}
-          <section className="min-h-screen flex flex-col justify-center items-center text-center space-y-6">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.2 }} className="space-y-6">
-              <h3 className="text-xs tracking-[0.4em] uppercase text-[#7BAE7F]/70 font-mono">3 october 2025</h3>
-              <h1 className="text-2xl md:text-4xl italic font-serif text-white leading-relaxed px-2">
-                the day i met someone<br />through a random telegram chat...
+              <h1 className="px-2 font-serif text-2xl italic leading-relaxed text-white md:text-4xl">
+                the day i met someone
+                <br />
+                through a random telegram chat...
               </h1>
+
               <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">
                 and somehow, she became my favorite person.
               </p>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5, duration: 1 }} className="w-full shadow-2xl rounded-2xl overflow-hidden border border-white/5 bg-slate-900/40">
-              <img src="/sayangnyaa-masss-ultah/photo1.jpeg" alt="Opening Moments" className="w-full h-auto object-cover" loading="lazy" />
-            </motion.div>
+            <ImageCard
+              src="/sayangnyaa-masss-ultah/photo1.jpeg"
+              alt="opening"
+            />
 
-            <span className="text-[10px] uppercase tracking-widest text-slate-500 animate-bounce pt-4 block">scroll slowly ↓</span>
+            <span className="animate-bounce pt-4 text-[10px] uppercase tracking-widest text-slate-500">
+              scroll slowly ↓
+            </span>
           </section>
 
-          {/* LDR Map */}
-          <section className="space-y-4 pt-12">
-            <div className="text-center space-y-1">
-              <h2 className="text-xl italic font-serif tracking-wide text-slate-200">distance means nothing</h2>
-              <p className="text-[9px] uppercase tracking-[0.3em] text-[#7BAE7F]">bekasi ↔ sanggau (1.550 km)</p>
+          {/* MUSIC */}
+          <section className="space-y-8 rounded-3xl border border-white/5 bg-slate-900/20 p-6 py-16 text-center">
+
+            <div className="space-y-2">
+              <h2 className="font-serif text-sm italic text-slate-300">
+                every time this song plays,
+              </h2>
+
+              <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500">
+                masss always think about you
+              </p>
             </div>
-            <div className="w-full shadow-2xl rounded-2xl overflow-hidden border border-white/5 bg-slate-900/40">
-              <img src="/sayangnyaa-masss-ultah/Map.png" alt="LDR Map" className="w-full h-auto object-cover" loading="lazy" />
+
+            <div className="relative flex items-center justify-center py-4">
+
+              <motion.div
+                animate={{
+                  rotate: isPlaying ? 360 : 0,
+                }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 10,
+                  ease: 'linear',
+                }}
+                className="h-48 w-48 overflow-hidden rounded-full border-4 border-slate-800 shadow-[0_0_50px_rgba(0,0,0,0.8)]"
+              >
+                <img
+                  src="/sayangnyaa-masss-ultah/vinyl.png"
+                  alt="vinyl"
+                  className="h-full w-full object-cover"
+                />
+              </motion.div>
+
+              {isPlaying && (
+                <motion.div
+                  animate={{
+                    scale: [1, 1.18, 1],
+                    opacity: [0.4, 0, 0.4],
+                  }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: 1.8,
+                  }}
+                  className="absolute inset-0 rounded-full border border-[#7BAE7F]/30"
+                />
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-slate-200">
+                about you
+              </h3>
+
+              <p className="text-[9px] uppercase tracking-[0.25em] text-[#7BAE7F]">
+                the 1975
+              </p>
+            </div>
+
+            <button
+              onClick={toggleMusic}
+              className="rounded-full bg-white px-8 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-950 shadow-md transition-all hover:bg-[#7BAE7F] hover:text-white active:scale-95"
+            >
+              {isPlaying
+                ? 'pause music ⏸'
+                : 'play music ▶'}
+            </button>
+          </section>
+
+          {/* COUNTER */}
+          <section className="flex items-center justify-center py-6">
+            <div className="w-full rounded-3xl border border-white/5 bg-slate-900/30 px-8 py-6 text-center shadow-xl backdrop-blur-md">
+
+              <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-[#7BAE7F]">
+                together since
+              </p>
+
+              <h1 className="pt-3 text-5xl font-black text-white">
+                {daysTogether}
+              </h1>
+
+              <p className="pt-2 text-xs uppercase tracking-[0.25em] text-slate-400">
+                days with you 💚
+              </p>
+
+              <div className="my-5 h-px w-full bg-white/5" />
+
+              <p className="mx-auto max-w-[220px] text-[11px] leading-relaxed text-slate-500">
+                sejak 3 october 2025, dan masss masih tetep
+                bersyukur karena random chat itu ternyata
+                bawa masss ke sayanggg.
+              </p>
             </div>
           </section>
 
-          {/* Photobooth */}
-          <section className="space-y-4 pt-12">
-            <div className="text-center space-y-1">
-              <h2 className="text-xl italic font-serif text-slate-200">photobooth memories</h2>
-              <p className="text-[9px] uppercase tracking-[0.3em] text-slate-500">pieces of you</p>
-            </div>
-            <div className="w-full shadow-2xl rounded-2xl overflow-hidden border border-white/5 bg-slate-900/40">
-              <img src="/sayangnyaa-masss-ultah/photo.png" alt="Photobooth" className="w-full h-auto object-cover" loading="lazy" />
-            </div>
+          {/* MAP */}
+          <section className="space-y-4">
+            <SectionTitle
+              title="distance means nothing"
+              subtitle="bekasi ↔ sanggau (1.550 km)"
+            />
+
+            <ImageCard
+              src="/sayangnyaa-masss-ultah/Map.png"
+              alt="map"
+            />
           </section>
 
-          {/* Chat Dump */}
-          <section className="space-y-4 pt-12">
-            <div className="text-center space-y-1">
-              <h2 className="text-xl italic font-serif text-slate-200">tiny conversations, huge meanings</h2>
-              <p className="text-[9px] uppercase tracking-[0.3em] text-slate-500">screenshots i secretly keep</p>
-            </div>
-            <div className="w-full shadow-2xl rounded-2xl overflow-hidden border border-white/5 bg-slate-900/40">
-              <img src="/sayangnyaa-masss-ultah/chat-dumb.png" alt="Chat Dump" className="w-full h-auto object-cover" loading="lazy" />
-            </div>
+          {/* PHOTOBOOTH */}
+          <section className="space-y-4">
+            <SectionTitle
+              title="photobooth memories"
+              subtitle="pieces of you"
+            />
+
+            <ImageCard
+              src="/sayangnyaa-masss-ultah/photo.png"
+              alt="photobooth"
+            />
           </section>
 
-          {/* Pesan Section */}
-          <section className="space-y-4 pt-12">
-            <div className="text-center space-y-1">
-              <h2 className="text-xl italic font-serif text-slate-200">a little message for you</h2>
-              <p className="text-[9px] uppercase tracking-[0.3em] text-slate-500">from your favorite boy</p>
-            </div>
-            <div className="w-full shadow-2xl rounded-2xl overflow-hidden border border-white/5 bg-slate-900/40">
-              <img src="/sayangnyaa-masss-ultah/pesan.png" alt="Love Message" className="w-full h-auto object-cover" loading="lazy" />
-            </div>
+          {/* CHAT */}
+          <section className="space-y-4">
+            <SectionTitle
+              title="tiny conversations, huge meanings"
+              subtitle="screenshots i secretly keep"
+            />
+
+            <ImageCard
+              src="/sayangnyaa-masss-ultah/chat-dumb.png"
+              alt="chat"
+            />
           </section>
 
-          {/* Form Section */}
-          <section className="bg-[#0c1118]/90 border border-[#7BAE7F]/10 rounded-3xl p-6 shadow-xl space-y-6 backdrop-blur-md">
-            <div className="text-center space-y-1">
-              <h2 className="text-lg italic font-serif text-slate-200">one more thing...</h2>
-              <p className="text-[10px] uppercase tracking-[0.3em] text-[#7BAE7F]">answer honestly 💚</p>
+          {/* MESSAGE */}
+          <section className="space-y-4">
+            <SectionTitle
+              title="a little message for you"
+              subtitle="from your favorite boy"
+            />
+
+            <ImageCard
+              src="/sayangnyaa-masss-ultah/pesan.png"
+              alt="message"
+            />
+          </section>
+
+          {/* FORM */}
+          <section className="space-y-6 rounded-3xl border border-[#7BAE7F]/10 bg-[#0c1118]/90 p-6 shadow-xl backdrop-blur-md">
+
+            <div className="space-y-1 text-center">
+              <h2 className="font-serif text-lg italic text-slate-200">
+                one more thing...
+              </h2>
+
+              <p className="text-[10px] uppercase tracking-[0.3em] text-[#7BAE7F]">
+                answer honestly 💚
+              </p>
             </div>
 
             <div className="space-y-5">
-              <div className="space-y-2">
-                <label className="text-xs text-slate-300 block font-medium leading-relaxed">
-                  “di umur baru ini, kamu pengen jadi versi diri yang kayak gimana?”
-                </label>
-                <textarea
-                  rows={3}
-                  value={futureSelf}
-                  placeholder="Tulis di sini ya, sayangg..."
-                  onChange={(e) => setFutureSelf(e.target.value)}
-                  className="w-full bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-xs outline-none focus:border-[#7BAE7F] resize-none text-slate-200 placeholder:text-slate-600 transition"
-                />
-              </div>
 
-              <div className="space-y-2">
-                <label className="text-xs text-slate-300 block font-medium leading-relaxed">
-                  “kalau nanti kita akhirnya ketemu, hal pertama yang pengen kita lakuin apa?”
-                </label>
-                <textarea
-                  rows={3}
-                  value={firstMeet}
-                  placeholder="Pengen jalan bareng atau nge-matcha? 🍵"
-                  onChange={(e) => setFirstMeet(e.target.value)}
-                  className="w-full bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-xs outline-none focus:border-[#7BAE7F] resize-none text-slate-200 placeholder:text-slate-600 transition"
-                />
-              </div>
+              <TextareaField
+                label='“di umur baru ini, kamu pengen jadi versi diri yang kayak gimana?”'
+                placeholder='tulis di sini ya, sayangg...'
+                value={answers.futureSelf}
+                onChange={(e) =>
+                  handleAnswerInput(
+                    'futureSelf',
+                    e.target.value
+                  )
+                }
+              />
 
-              <div className="space-y-2">
-                <label className="text-xs text-slate-300 block font-medium leading-relaxed">
-                  “menurut kamu, hubungan kita bakal kayak apa beberapa tahun lagi?”
-                </label>
-                <textarea
-                  rows={3}
-                  value={futureRelationship}
-                  placeholder="Ceritain ekspektasi kamu..."
-                  onChange={(e) => setFutureRelationship(e.target.value)}
-                  className="w-full bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-xs outline-none focus:border-[#7BAE7F] resize-none text-slate-200 placeholder:text-slate-600 transition"
-                />
-              </div>
+              <TextareaField
+                label='“kalau nanti kita akhirnya ketemu, hal pertama yang pengen kita lakuin apa?”'
+                placeholder='pengen jalan bareng atau nge-matcha? 🍵'
+                value={answers.firstMeet}
+                onChange={(e) =>
+                  handleAnswerInput(
+                    'firstMeet',
+                    e.target.value
+                  )
+                }
+              />
+
+              <TextareaField
+                label='“menurut kamu, hubungan kita bakal kayak apa beberapa tahun lagi?”'
+                placeholder='ceritain ekspektasi kamu...'
+                value={answers.futureRelationship}
+                onChange={(e) =>
+                  handleAnswerInput(
+                    'futureRelationship',
+                    e.target.value
+                  )
+                }
+              />
 
               <button
                 onClick={handleSendLiveWish}
-                className="w-full bg-[#7BAE7F] text-slate-950 py-3.5 rounded-xl uppercase tracking-[0.15em] text-xs font-bold hover:bg-green-400 transition-all active:scale-[0.99] shadow-md shadow-[#7BAE7F]/5"
+                className="w-full rounded-xl bg-[#7BAE7F] py-3.5 text-xs font-bold uppercase tracking-[0.15em] text-slate-950 shadow-md shadow-[#7BAE7F]/5 transition-all hover:bg-green-400 active:scale-[0.99]"
               >
                 kirim jawaban ke masss 💚
               </button>
             </div>
           </section>
 
-          {/* Ending */}
-          <section className="min-h-[60vh] flex flex-col justify-center items-center text-center space-y-4 px-4">
-            <h1 className="text-3xl md:text-4xl font-black uppercase leading-tight bg-gradient-to-r from-white via-slate-300 to-[#7BAE7F] bg-clip-text text-transparent tracking-wide">
-              happy birthday,<br />my favorite person 💚
+          {/* ENDING */}
+          <section className="flex min-h-[60vh] flex-col items-center justify-center space-y-4 px-4 text-center">
+
+            <h1 className="bg-gradient-to-r from-white via-slate-300 to-[#7BAE7F] bg-clip-text text-3xl font-black uppercase leading-tight tracking-wide text-transparent md:text-4xl">
+              happy birthday,
+              <br />
+              my favorite person 💚
             </h1>
-            <p className="text-xs text-slate-500 max-w-xs leading-relaxed font-mono">
-              and in every universe, masss would still choose you.
+
+            <p className="max-w-xs font-mono text-xs leading-relaxed text-slate-500">
+              and in every universe, masss would still choose
+              you.
             </p>
-            <span className="text-[10px] font-mono text-[#7BAE7F] tracking-widest uppercase pt-6 block">
+
+            <span className="block pt-6 font-mono text-[10px] uppercase tracking-widest text-[#7BAE7F]">
               — from your favorite telegram boy
             </span>
           </section>
-
         </div>
       )}
     </div>
