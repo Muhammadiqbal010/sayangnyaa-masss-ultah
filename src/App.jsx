@@ -229,6 +229,44 @@ export default function App() {
       {/* MAIN CONTENT */}
       {isUnlocked && !loading && (
         <div className="relative z-10 max-w-xl mx-auto px-4 pb-24 space-y-24">
+
+          {/* Vinyl Music */}
+          <section className="flex flex-col justify-center items-center text-center p-6 bg-slate-900/20 border border-white/5 rounded-3xl space-y-6">
+            <div className="space-y-1">
+              <h2 className="text-sm font-serif italic text-slate-300">every time this song plays,</h2>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500">masss always think about you</p>
+            </div>
+
+            <div className="relative flex justify-center items-center py-2">
+              <motion.div
+                animate={{ rotate: isPlaying ? 360 : 0 }}
+                transition={{ repeat: Infinity, duration: 10, ease: 'linear' }}
+                className="w-48 h-48 rounded-full shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden border-4 border-slate-800"
+              >
+                <img src="/sayangnyaa-masss-ultah/vinyl.png" alt="Vinyl" className="w-full h-full object-cover" loading="lazy" />
+              </motion.div>
+
+              {isPlaying && (
+                <motion.div
+                  animate={{ scale: [1, 1.18, 1], opacity: [0.4, 0, 0.4] }}
+                  transition={{ repeat: Infinity, duration: 1.8 }}
+                  className="absolute inset-0 rounded-full border border-[#7BAE7F]/30 pointer-events-none"
+                />
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="uppercase tracking-[0.3em] text-xs font-bold text-slate-200">about you</h3>
+              <p className="text-[9px] uppercase tracking-[0.25em] text-[#7BAE7F]">the 1975</p>
+            </div>
+
+            <button
+              onClick={toggleMusic}
+              className="bg-white text-slate-950 px-8 py-3 rounded-full text-[10px] uppercase tracking-[0.2em] font-bold hover:bg-[#7BAE7F] hover:text-white transition-all shadow-md active:scale-95"
+            >
+              {isPlaying ? 'pause music ⏸' : 'play music ▶'}
+            </button>
+          </section>
           
           {/* Counter Together */}
           <section className="flex justify-center items-center py-6 pt-12">
@@ -299,44 +337,6 @@ export default function App() {
             <div className="w-full shadow-2xl rounded-2xl overflow-hidden border border-white/5 bg-slate-900/40">
               <img src="/sayangnyaa-masss-ultah/chat-dumb.png" alt="Chat Dump" className="w-full h-auto object-cover" loading="lazy" />
             </div>
-          </section>
-
-          {/* Vinyl Music */}
-          <section className="flex flex-col justify-center items-center text-center p-6 bg-slate-900/20 border border-white/5 rounded-3xl space-y-6">
-            <div className="space-y-1">
-              <h2 className="text-sm font-serif italic text-slate-300">every time this song plays,</h2>
-              <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500">masss always think about you</p>
-            </div>
-
-            <div className="relative flex justify-center items-center py-2">
-              <motion.div
-                animate={{ rotate: isPlaying ? 360 : 0 }}
-                transition={{ repeat: Infinity, duration: 10, ease: 'linear' }}
-                className="w-48 h-48 rounded-full shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden border-4 border-slate-800"
-              >
-                <img src="/sayangnyaa-masss-ultah/vinyl.png" alt="Vinyl" className="w-full h-full object-cover" loading="lazy" />
-              </motion.div>
-
-              {isPlaying && (
-                <motion.div
-                  animate={{ scale: [1, 1.18, 1], opacity: [0.4, 0, 0.4] }}
-                  transition={{ repeat: Infinity, duration: 1.8 }}
-                  className="absolute inset-0 rounded-full border border-[#7BAE7F]/30 pointer-events-none"
-                />
-              )}
-            </div>
-
-            <div className="space-y-1">
-              <h3 className="uppercase tracking-[0.3em] text-xs font-bold text-slate-200">about you</h3>
-              <p className="text-[9px] uppercase tracking-[0.25em] text-[#7BAE7F]">the 1975</p>
-            </div>
-
-            <button
-              onClick={toggleMusic}
-              className="bg-white text-slate-950 px-8 py-3 rounded-full text-[10px] uppercase tracking-[0.2em] font-bold hover:bg-[#7BAE7F] hover:text-white transition-all shadow-md active:scale-95"
-            >
-              {isPlaying ? 'pause music ⏸' : 'play music ▶'}
-            </button>
           </section>
 
           {/* Pesan Section */}
