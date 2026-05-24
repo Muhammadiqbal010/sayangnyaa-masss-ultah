@@ -231,19 +231,19 @@ export default function App() {
         <div className="relative z-10 max-w-xl mx-auto px-4 pb-24 space-y-24">
 
           {/* Vinyl Music */}
-          <section className="flex flex-col justify-center items-center text-center p-6 bg-slate-900/20 border border-white/5 rounded-3xl space-y-6">
-            <div className="space-y-1">
+          <section className="flex flex-col justify-center items-center text-center p-6 py-16 bg-slate-900/20 border border-white/5 rounded-3xl space-y-8">
+            <div className="space-y-2">
               <h2 className="text-sm font-serif italic text-slate-300">every time this song plays,</h2>
               <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500">masss always think about you</p>
             </div>
 
-            <div className="relative flex justify-center items-center py-2">
+            <div className="relative flex justify-center items-center py-4">
               <motion.div
                 animate={{ rotate: isPlaying ? 360 : 0 }}
                 transition={{ repeat: Infinity, duration: 10, ease: 'linear' }}
                 className="w-48 h-48 rounded-full shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden border-4 border-slate-800"
               >
-                <img src="/sayangnyaa-masss-ultah/ABOUT_YOU.png" alt="Vinyl" className="w-full h-full object-cover" loading="lazy" />
+                <img src="/sayangnyaa-masss-ultah/vinyl.png" alt="Vinyl" className="w-full h-full object-cover" loading="lazy" />
               </motion.div>
 
               {isPlaying && (
